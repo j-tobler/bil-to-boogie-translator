@@ -379,6 +379,13 @@ public class BoogieTranslator {
      * one of these as the 'type' argument.
      * Integers such as those used in extract facts do not count as atomic facts and are ignored, as are certain strings
      * such as cjump target labels.
+     * Note that, with the exception of VarFacts and LiteralFacts, for any facts without children, this method returns
+     * true trivially.
+     * true.
+     *
+     * @param fact the fact to check
+     * @param type the type that we check whether the fact exclusively contains
+     * @return true iff the given fact only contains children, grandchildren etc. of the given type
      */
     private boolean onlyContainsType(Fact fact, Class<? extends ExpFact> type) {
         if (type == LiteralFact.class || type == VarFact.class) {
@@ -392,14 +399,23 @@ public class BoogieTranslator {
         return true;
     }
 
-    // recursively replaces all children of this fact which match the given fact, with the other given fact
-    // works because getChildren returns ExpFacts and ExpFacts override equals(), unlike InstFacts which are inherently
-    // unique
+    /**
+     * Recursively replaces all children of this fact which .equal oldExp with newExp.
+     * Works because any Fact.getChildren() returns ExpFacts, and all ExpFacts override equals, unlike InstFacts which
+     * are inherently unique.
+     *
+     * @param parent of the children to be replaced
+     * @param oldExp the ExpFact to be matched
+     * @param newExp the ExpFact to replace any matching children
+     */
     private void replaceAllMatchingChildren(Fact parent, ExpFact oldExp, ExpFact newExp) {
         parent.getChildren().forEach(child -> replaceAllMatchingChildren(child, oldExp, newExp));
         parent.replace(oldExp, newExp);
     }
 
+    /**
+     * Attempts to write the global flow graph to the file with filename given in the constructor.
+     */
     private void writeToFile() {
         try {
             writer.write(flowGraph.toString());
@@ -409,14 +425,23 @@ public class BoogieTranslator {
         }
     }
 
+    /**
+     * @return a unique variable name of the form "p[num]", not previously returned by this method.
+     */
     private String uniqueVarName() {
         return "p" + uniqueNum();
     }
 
+    /**
+     * @return a unique label of the form "l[num]", not previously returned by this method.
+     */
     private String uniqueLabel() {
         return "l" + uniqueNum();
     }
 
+    /**
+     * @return a unique number, not previously returned by this method
+     */
     private int uniqueNum() {
         return uniqueInt++;
     }
